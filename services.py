@@ -4,11 +4,14 @@ import database as _database
 import fastapi as _fastapi
 import fastapi.security as _security
 import jwt as _jwt
+import datetime as _dt
 import sqlalchemy as _sql
-import common as _common , models as _models
+import common as _common , models as _models , services as _services
 
 oauth2schema = _security.OAuth2PasswordBearer(tokenUrl="/api/token")
 JWT_SECRET = "chaithanya83"
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_TIME_MINUTES = 60
 async def create_user(user: _common.UserCreate, db: _orm.Session):
     user_obj = _models.User(
         email=user.email, hashed_password=_hash.bcrypt.hash(user.hashed_password), name=user.name
@@ -41,10 +44,17 @@ async def authenticate_user(email: str, password: str, db: _orm.Session):
  
 async def create_token(user: _models.User):
     user_obj = _common.User.from_orm(user)
- 
-    token = _jwt.encode(user_obj.dict(), JWT_SECRET)
- 
-    return dict(access_token=token, token_type="bearer")
+
+    expiration_time = _dt.datetime.utcnow() + _dt.timedelta(minutes=JWT_EXPIRATION_TIME_MINUTES)
+    token_data = {
+        "sub": str(user_obj.id),
+        "exp": expiration_time,
+    }
+
+    token = _jwt.encode(token_data, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+    return {"access_token": token, "token_type": "bearer", "expires_in": JWT_EXPIRATION_TIME_MINUTES * 60}
+
  
 async def get_current_user(
     db: _orm.Session = _fastapi.Depends(get_db),
@@ -102,3 +112,61 @@ async def unfollow_user(followed_email: str, current_user: _common.Users, db: _o
 async def get_followers(email: str, db: _orm.Session):
     followers = db.query(_models.Follow).filter(_models.Follow.followed_email == email).all()
     return [_common.Users(email=follower.follower_email) for follower in followers]
+
+
+async def delete_post(post_id: int, current_user: _common.Users, db: _orm.Session):
+    post = db.query(_models.post).filter(
+        _models.post.id == post_id,
+        _models.post.email == current_user.email
+    ).first()
+
+    if post:
+        db.delete(post)
+        db.commit()
+        return {"message": "Post deleted successfully"}
+    else:
+        raise _fastapi.HTTPException(status_code=404, detail="Post not found")
+
+async def update_post(post_id: int, new_content: str, current_user: _common.Users, db: _orm.Session):
+    post = db.query(_models.post).filter(
+        _models.post.id == post_id,
+        _models.post.email == current_user.email
+    ).first()
+
+    if post:
+        post.post = new_content
+        db.commit()
+        db.refresh(post)
+        return {"message": "Post updated successfully"}
+    else:
+        raise _fastapi.HTTPException(status_code=404, detail="Post not found")
+
+
+async def delete_user_with_password(
+    email: str, password: str, db: _orm.Session
+):
+    user = await _services.authenticate_user(
+        email=email, password=password, db=db
+    )
+
+    if user:
+        db.delete(user)
+        db.commit()
+        return {"message": "User deleted successfully"}
+    else:
+        raise _fastapi.HTTPException(
+            status_code=401, detail="Invalid Password or User not found"
+        )
+    
+async def login_user(form_data: _security.OAuth2PasswordRequestForm = _fastapi.Depends(), db: _orm.Session = _fastapi.Depends(_services.get_db)):
+    user = await _services.authenticate_user(form_data.username, form_data.password, db)
+ 
+    if not user:
+        raise _fastapi.HTTPException(status_code=401, detail="Invalid Credentials")
+ 
+    return await _services.create_token(user)
+
+
+async def list_users(db: _orm.Session, offset: int = 0, limit: int = 10):
+    users = db.query(_models.User).offset(offset).limit(limit).all()
+    return users

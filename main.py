@@ -72,3 +72,31 @@ async def unfollow_user_route(username: str, current_user: _common.Users = _fast
 async def get_followers_route(current_user: _common.Users = _fastapi.Depends(_services.get_current_user), db: _orm.Session = _fastapi.Depends(_services.get_db)):
     return await _services.get_followers(email=current_user.email, db=db)
 
+
+@app.delete("/api/post/{post_id}")
+async def delete_post_route(post_id: int, current_user: _common.Users = _fastapi.Depends(_services.get_current_user), db: _orm.Session = _fastapi.Depends(_services.get_db)):
+    return await _services.delete_post(post_id=post_id, current_user=current_user, db=db)
+
+@app.put("/api/post/{post_id}")
+async def update_post_route(post_id: int, new_content: str, current_user: _common.Users = _fastapi.Depends(_services.get_current_user), db: _orm.Session = _fastapi.Depends(_services.get_db)):
+    return await _services.update_post(post_id=post_id, new_content=new_content, current_user=current_user, db=db)
+
+
+@app.delete("/api/users/delete")
+async def delete_user_route(
+    password: str,
+    email: str,
+    db: _orm.Session = _fastapi.Depends(_services.get_db),
+):
+    return await _services.delete_user_with_password(
+        email=email, password=password, db=db
+    )
+
+
+@app.post("/api/login")
+async def login_route(response: _fastapi.Response, form_data: _security.OAuth2PasswordRequestForm = _fastapi.Depends(), db: _orm.Session = _fastapi.Depends(_services.get_db)):
+    return await _services.login_user(form_data=form_data, db=db)
+
+@app.get("/api/users/", response_model=List[_common.User])
+async def get_all_users(offset: int = 0, limit: int = 10, db: _orm.Session = _fastapi.Depends(_services.get_db)):
+    return await _services.list_users(db=db, offset=offset, limit=limit)
