@@ -42,10 +42,7 @@ async def generate_token(
 async def get_user(user: _common.User = _fastapi.Depends(_services.get_current_user)):
     return user
 
-@app.post("/users/follow/{username}")
-def follow_user(username: str, current_user: _common.Users = _fastapi.Depends(_services.get_current_user)):
-    
-    pass
+
 
 
 @app.post("/api/createpost/")
@@ -73,11 +70,11 @@ async def get_followers_route(current_user: _common.Users = _fastapi.Depends(_se
     return await _services.get_followers(email=current_user.email, db=db)
 
 
-@app.delete("/api/post/{post_id}")
+@app.delete("/api/dpost/{post_id}")
 async def delete_post_route(post_id: int, current_user: _common.Users = _fastapi.Depends(_services.get_current_user), db: _orm.Session = _fastapi.Depends(_services.get_db)):
     return await _services.delete_post(post_id=post_id, current_user=current_user, db=db)
 
-@app.put("/api/post/{post_id}")
+@app.put("/api/upost/{post_id}")
 async def update_post_route(post_id: int, new_content: str, current_user: _common.Users = _fastapi.Depends(_services.get_current_user), db: _orm.Session = _fastapi.Depends(_services.get_db)):
     return await _services.update_post(post_id=post_id, new_content=new_content, current_user=current_user, db=db)
 
