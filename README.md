@@ -1,7 +1,22 @@
 # Social-Media-Backend-server
 
+## Setup
 
-Disc:
+### 1. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Run the FastAPI Application
+```bash
+uvicorn main:app --reload
+```
+
+### 3. Visit http://127.0.0.1:8000/docs in your browser to access the Swagger UI for API documentation.
+
+
+Usage:
 
 1) /api/users - create User
 2) /users/follow/{username} - Follow user
@@ -14,7 +29,6 @@ Disc:
 9) /api/users/delete - delte the user using email and password
 10) /api/login - login 
 11) /api/users/ - list all user
-
 12) /api/users/myprofile - gives user details
 13) /api/token - generates token
 

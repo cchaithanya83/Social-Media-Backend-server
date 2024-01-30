@@ -3,6 +3,7 @@ import pydantic as _pydantic
 
 class _UserBase(_pydantic.BaseModel):
     email: str
+    
  
 class UserCreate(_UserBase):
     hashed_password: str
@@ -13,6 +14,7 @@ class UserCreate(_UserBase):
  
 class User(_UserBase):
     id: int
+    name :str
  
     class Config:
         orm_mode = True
@@ -25,7 +27,7 @@ class Users(_pydantic.BaseModel):
 
 
 class Post(_pydantic.BaseModel):
-    email: str
+    
     content: str
 
     class Config:
