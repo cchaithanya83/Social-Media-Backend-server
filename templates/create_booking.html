@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create New Booking</title>
+</head>
+<body>
+
+<h2>Create New Booking</h2>
+
+<form method="post" action="/create_booking" enctype="application/x-www-form-urlencoded">
+
+    <label for="checkindate">checkindate:</label>
+    <input id="checkindate" name="checkindate" required></input><br>
+    <label for="checkoutdate">checkoutdate:</label>
+    <input id="checkoutdate" name="checkoutdate" required></input><br>
+    <label for="childs">childs:</label>
+    <input id="childs" name="childs" required></input><br>
+    <label for="adults">adults:</label>
+    <input id="adults" name="adults" required></input><br>
+
+    <button type="submit">Submit Booking</button>
+</form>
+
+</body>
+</html>
